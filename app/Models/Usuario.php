@@ -8,4 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class Usuario extends Model
 {
     use HasFactory;
+
+    protected $table = 'usuarios';
+    protected $primaryKey = 'id_usuario';
+    protected $fillable = ['nombre', 'apellido', 'dni', 'email', 'telefono', 'direccion', 'contrasena', 'id_rol'];
+
+    public function rol()
+    {
+        return $this->belongsTo(Rol::class, 'id_rol');
+    }
 }
