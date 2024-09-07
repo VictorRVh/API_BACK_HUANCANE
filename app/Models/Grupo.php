@@ -35,13 +35,10 @@ class Grupo extends Model
         return $this->belongsTo(Especialidad::class, 'id_especialidad', 'id_especialidad');
     }
 
-    /**
-     * Relación con el modelo Plan.
-     */
-    // public function plan()
-    // {
-    //     return $this->belongsTo(Plan::class, 'id_plan', 'id_plan');
-    // }
+    public function plan()
+    {
+        return $this->belongsTo(Planes::class, 'id_plan', 'id_plan');
+    }
 
     public function docente()
     {
