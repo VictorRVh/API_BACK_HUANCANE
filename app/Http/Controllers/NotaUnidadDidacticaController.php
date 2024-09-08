@@ -13,7 +13,7 @@ class NotaUnidadDidacticaController extends Controller
      */
     public function index()
     {
-        $notas = NotaUnidadDidactica::all();
+        $notas = NotaUnidadDidactica::with(['unidadDidactica', 'estudiante', 'docente'])->get();
         return response()->json($notas);
     }
 
@@ -24,53 +24,49 @@ class NotaUnidadDidacticaController extends Controller
     {
         // Validación de datos
         $validator = Validator::make($request->all(), [
+            'nota' => 'required|integer',
             'id_unidad_didactica' => 'required|exists:unidades_didacticas,id_unidad_didactica',
             'id_estudiante' => 'required|exists:usuarios,id_usuario',
             'id_docente' => 'required|exists:usuarios,id_usuario',
-            'nota' => 'required|integer|min:0|max:100'
         ]);
 
         if ($validator->fails()) {
-            $data = [
+            return response()->json([
                 'message' => 'Error en la validación de los datos',
                 'errors' => $validator->errors(),
                 'status' => 400
-            ];
-
-            return response()->json($data, 400);
+            ], 400);
         }
 
-        // Crear la nueva nota de unidad didáctica
+        // Crear una nueva nota
         $nota = NotaUnidadDidactica::create([
+            'nota' => $request->nota,
             'id_unidad_didactica' => $request->id_unidad_didactica,
             'id_estudiante' => $request->id_estudiante,
             'id_docente' => $request->id_docente,
-            'nota' => $request->nota,
         ]);
 
-        if (!$nota) {
-            $data = [
-                'message' => 'Error al crear la nota de unidad didáctica',
-                'status' => 500
-            ];
-
-            return response()->json($data, 500);
-        }
-
-        $data = [
+        return response()->json([
             'nota' => $nota,
             'status' => 201
-        ];
-
-        return response()->json($data, 201);
+        ], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(NotaUnidadDidactica $notaUnidadDidactica)
+    public function show($id)
     {
-        return response()->json($notaUnidadDidactica);
+        $nota = NotaUnidadDidactica::with(['unidadDidactica', 'estudiante', 'docente'])->find($id);
+
+        if (!$nota) {
+            return response()->json([
+                'message' => 'Nota no encontrada',
+                'status' => 404
+            ], 404);
+        }
+
+        return response()->json($nota);
     }
 
     /**
@@ -78,65 +74,64 @@ class NotaUnidadDidacticaController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // Validación de datos
         $validator = Validator::make($request->all(), [
+            'nota' => 'required|integer',
             'id_unidad_didactica' => 'required|exists:unidades_didacticas,id_unidad_didactica',
             'id_estudiante' => 'required|exists:usuarios,id_usuario',
             'id_docente' => 'required|exists:usuarios,id_usuario',
-            'nota' => 'required|integer|min:0|max:100'
         ]);
 
         if ($validator->fails()) {
-            $data = [
+            return response()->json([
                 'message' => 'Error en la validación de los datos',
                 'errors' => $validator->errors(),
                 'status' => 400
-            ];
-
-            return response()->json($data, 400);
+            ], 400);
         }
 
-        // Buscar la nota de unidad didáctica por ID
-        $nota = NotaUnidadDidactica::find($id);
+        $notaUnidadDidactica = NotaUnidadDidactica::find($id);
 
-        if (!$nota) {
-            $data = [
-                'message' => 'Nota de unidad didáctica no encontrada',
+        if (!$notaUnidadDidactica) {
+            return response()->json([
+                'message' => 'NotaUnidadDidactica no encontrada',
                 'status' => 404
-            ];
-
-            return response()->json($data, 404);
+            ], 404);
         }
 
-        // Actualizar los datos de la nota
-        $nota->id_unidad_didactica = $request->id_unidad_didactica;
-        $nota->id_estudiante = $request->id_estudiante;
-        $nota->id_docente = $request->id_docente;
-        $nota->nota = $request->nota;
+        $notaUnidadDidactica->nota = $request->nota;
+        $notaUnidadDidactica->id_unidad_didactica = $request->id_unidad_didactica;
+        $notaUnidadDidactica->id_estudiante = $request->id_estudiante;
+        $notaUnidadDidactica->id_docente = $request->id_docente;
+        $notaUnidadDidactica->save();
 
-        if (!$nota->save()) {
-            $data = [
-                'message' => 'Error al actualizar la nota de unidad didáctica',
-                'status' => 500
-            ];
-
-            return response()->json($data, 500);
-        }
-
-        $data = [
-            'nota' => $nota,
+        return response()->json([
+            'nota_unidad_didactica' => $notaUnidadDidactica,
             'status' => 200
-        ];
-
-        return response()->json($data, 200);
+        ], 200);
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(NotaUnidadDidactica $notaUnidadDidactica)
+    public function destroy($id)
     {
-        $notaUnidadDidactica->delete();
-        return response()->json(null, 204);
+        // Encontrar el registro existente
+        $nota = NotaUnidadDidactica::find($id);
+
+        if (!$nota) {
+            return response()->json([
+                'message' => 'Nota no encontrada',
+                'status' => 404
+            ], 404);
+        }
+
+        // Eliminar el registro
+        $nota->delete();
+
+        return response()->json([
+            'message' => 'Nota eliminada exitosamente',
+            'status' => 200
+        ], 200);
     }
 }

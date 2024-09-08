@@ -10,6 +10,7 @@ class Matricula extends Model
     use HasFactory;
 
     protected $table = 'matriculas';
+    protected $primaryKey = 'id_matricula';
 
     protected $fillable = [
         'id_grupo',

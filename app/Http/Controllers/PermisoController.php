@@ -2,20 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Especialidad;
+use App\Models\Permiso;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class EspecialidadController extends Controller
+class PermisoController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $especialidad = Especialidad::all();
-
-        return response()->json($especialidad);
+        $permisos = Permiso::all();
+        return response()->json($permisos);
     }
 
     /**
@@ -25,7 +24,7 @@ class EspecialidadController extends Controller
     {
         // Validación de datos
         $validator = Validator::make($request->all(), [
-            'nombre_especialidad' => 'required|string|max:255',
+            'nombre_permiso' => 'required|string|max:60',
         ]);
 
         if ($validator->fails()) {
@@ -38,12 +37,11 @@ class EspecialidadController extends Controller
             return response()->json($data, 400);
         }
 
-        // Crear el nuevo registro de especialidad
-        $especialidad = Especialidad::create([
-            'nombre_especialidad' => $request->nombre_especialidad,
+        $permisos = Permiso::create([
+            'nombre_permiso' => $request->nombre_permiso,
         ]);
 
-        if (!$especialidad) {
+        if (!$permisos) {
             $data = [
                 'message' => 'Error al crear la especialidad',
                 'status' => 500
@@ -53,7 +51,7 @@ class EspecialidadController extends Controller
         }
 
         $data = [
-            'especialidad' => $especialidad,
+            'permisos' => $permisos,
             'status' => 201
         ];
 
@@ -63,10 +61,23 @@ class EspecialidadController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Especialidad $especialidad)
+    public function show($id)
     {
-        return response()->json($especialidad);
+        $permisos = Permiso::find($id);
+
+        if (!$permisos) {
+            return response()->json([
+                'message' => 'Permiso no encontrado',
+                'status' => 404
+            ], 404);
+        }
+
+        return response()->json([
+            'permiso' => $permisos,
+            'status' => 200
+        ], 200);
     }
+
 
     /**
      * Update the specified resource in storage.
@@ -75,7 +86,7 @@ class EspecialidadController extends Controller
     {
         // Validación de datos
         $validator = Validator::make($request->all(), [
-            'nombre_especialidad' => 'required|string|max:255',
+            'nombre_permiso' => 'required|string|max:60',
         ]);
 
         if ($validator->fails()) {
@@ -89,11 +100,11 @@ class EspecialidadController extends Controller
         }
 
         // Encontrar el registro existente
-        $especialidad = Especialidad::find($id);
+        $permisos = Permiso::find($id);
 
-        if (!$especialidad) {
+        if (!$permisos) {
             $data = [
-                'message' => 'Especialidad no encontrada',
+                'message' => 'Rol no encontrado',
                 'status' => 404
             ];
 
@@ -101,22 +112,31 @@ class EspecialidadController extends Controller
         }
 
         // Actualizar el registro
-        $especialidad->nombre_especialidad = $request->nombre_especialidad;
-        $especialidad->save();
+        $permisos->nombre_permiso = $request->nombre_permiso;
+        $permisos->save();
 
-        $data = [
-            'especialidad' => $especialidad,
-            'status' => 200
-        ];
-
-        return response()->json($data, 200);
+        return response()->json(['message' => 'Permiso actualizado', 'rol' => $permisos], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Especialidad $especialidad)
+    public function destroy($id)
     {
-        //
+        $permiso = Permiso::find($id);
+
+        if (!$permiso) {
+            return response()->json([
+                'message' => 'Permiso no encontrado',
+                'status' => 404
+            ], 404);
+        }
+
+        $permiso->delete();
+
+        return response()->json([
+            'message' => 'Permiso eliminado exitosamente',
+            'status' => 200
+        ], 200);
     }
 }

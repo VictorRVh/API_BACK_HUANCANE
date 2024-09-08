@@ -13,7 +13,7 @@ class NotaExperienciaFormativaController extends Controller
      */
     public function index()
     {
-        $notas = NotaExperienciaFormativa::all();
+        $notas = NotaExperienciaFormativa::with(['experienciaFormativa', 'estudiante', 'docente'])->get();
         return response()->json($notas);
     }
 
@@ -24,53 +24,49 @@ class NotaExperienciaFormativaController extends Controller
     {
         // Validación de datos
         $validator = Validator::make($request->all(), [
+            'nota' => 'required|integer',
             'id_experiencia' => 'required|exists:experiencias_formativas,id_experiencia',
             'id_estudiante' => 'required|exists:usuarios,id_usuario',
             'id_docente' => 'required|exists:usuarios,id_usuario',
-            'nota' => 'required|integer|min:0|max:100'
         ]);
 
         if ($validator->fails()) {
-            $data = [
+            return response()->json([
                 'message' => 'Error en la validación de los datos',
                 'errors' => $validator->errors(),
                 'status' => 400
-            ];
-
-            return response()->json($data, 400);
+            ], 400);
         }
 
-        // Crear la nueva nota de experiencia formativa
+        // Crear una nueva nota
         $nota = NotaExperienciaFormativa::create([
+            'nota' => $request->nota,
             'id_experiencia' => $request->id_experiencia,
             'id_estudiante' => $request->id_estudiante,
             'id_docente' => $request->id_docente,
-            'nota' => $request->nota,
         ]);
 
-        if (!$nota) {
-            $data = [
-                'message' => 'Error al crear la nota de experiencia formativa',
-                'status' => 500
-            ];
-
-            return response()->json($data, 500);
-        }
-
-        $data = [
+        return response()->json([
             'nota' => $nota,
             'status' => 201
-        ];
-
-        return response()->json($data, 201);
+        ], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(NotaExperienciaFormativa $notaExperienciaFormativa)
+    public function show($id)
     {
-        return response()->json($notaExperienciaFormativa);
+        $nota = NotaExperienciaFormativa::with(['experienciaFormativa', 'estudiante', 'docente'])->find($id);
+
+        if (!$nota) {
+            return response()->json([
+                'message' => 'Nota no encontrada',
+                'status' => 404
+            ], 404);
+        }
+
+        return response()->json($nota);
     }
 
     /**
@@ -80,62 +76,64 @@ class NotaExperienciaFormativaController extends Controller
     {
         // Validación de datos
         $validator = Validator::make($request->all(), [
+            'nota' => 'required|integer',
             'id_experiencia' => 'required|exists:experiencias_formativas,id_experiencia',
             'id_estudiante' => 'required|exists:usuarios,id_usuario',
             'id_docente' => 'required|exists:usuarios,id_usuario',
-            'nota' => 'required|integer|min:0|max:100'
         ]);
 
         if ($validator->fails()) {
-            $data = [
+            return response()->json([
                 'message' => 'Error en la validación de los datos',
                 'errors' => $validator->errors(),
                 'status' => 400
-            ];
-
-            return response()->json($data, 400);
+            ], 400);
         }
 
-        // Buscar la nota de experiencia formativa por ID
+        // Encontrar el registro existente
         $nota = NotaExperienciaFormativa::find($id);
 
         if (!$nota) {
-            $data = [
-                'message' => 'Nota de experiencia formativa no encontrada',
+            return response()->json([
+                'message' => 'Nota no encontrada',
                 'status' => 404
-            ];
-
-            return response()->json($data, 404);
+            ], 404);
         }
 
-        // Actualizar los datos de la nota
+        // Actualizar el registro
+        $nota->nota = $request->nota;
         $nota->id_experiencia = $request->id_experiencia;
         $nota->id_estudiante = $request->id_estudiante;
         $nota->id_docente = $request->id_docente;
-        $nota->nota = $request->nota;
+        $nota->save();
 
-        if (!$nota->save()) {
-            $data = [
-                'message' => 'Error al actualizar la nota de experiencia formativa',
-                'status' => 500
-            ];
-
-            return response()->json($data, 500);
-        }
-
-        $data = [
+        return response()->json([
             'nota' => $nota,
             'status' => 200
-        ];
-
-        return response()->json($data, 200);
+        ], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(NotaExperienciaFormativa $notaExperienciaFormativa)
+    public function destroy($id)
     {
-        //
+        // Encontrar el registro existente
+        $nota = NotaExperienciaFormativa::find($id);
+
+        if (!$nota) {
+            return response()->json([
+                'message' => 'Nota no encontrada',
+                'status' => 404
+            ], 404);
+        }
+
+        // Eliminar el registro
+        $nota->delete();
+
+        return response()->json([
+            'message' => 'Nota eliminada exitosamente',
+            'status' => 200
+        ], 200);
     }
 }

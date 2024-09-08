@@ -11,6 +11,8 @@ class ExperienciaFormativa extends Model
 
     protected $table = 'experiencias_formativas';
 
+    protected $primaryKey = 'id_experiencia';
+
     protected $fillable = [
         'nombre_experiencia',
         'id_programa',
@@ -19,6 +21,11 @@ class ExperienciaFormativa extends Model
     public function programa()
     {
         return $this->belongsTo(Programa::class, 'id_programa', 'id_programa');
+    }
+
+    public function notaExperienciaFormativa()
+    {
+        return $this->hasMany(NotaExperienciaFormativa::class, 'id_experiencia', 'id_experiencia');
     }
 
 }

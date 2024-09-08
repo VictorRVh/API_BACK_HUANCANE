@@ -11,11 +11,10 @@ class AsistenciaController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index() {
-
-        $asistencia = Asistencia::all();
-        return response()->json($asistencia);
-        
+    public function index()
+    {
+        $asistencias = Asistencia::with(['unidadDidactica', 'estudiante', 'docente'])->get();
+        return response()->json($asistencias, 200);
     }
 
     /**
@@ -23,7 +22,7 @@ class AsistenciaController extends Controller
      */
     public function store(Request $request)
     {
-        // Validación de datos
+        // Validación de los datos
         $validator = Validator::make($request->all(), [
             'fecha' => 'required|date',
             'estado' => 'required|string|max:255',
@@ -33,47 +32,28 @@ class AsistenciaController extends Controller
         ]);
 
         if ($validator->fails()) {
-            $data = [
+            return response()->json([
                 'message' => 'Error en la validación de los datos',
                 'errors' => $validator->errors(),
                 'status' => 400
-            ];
-
-            return response()->json($data, 400);
+            ], 400);
         }
 
-        // Crear la nueva asistencia
-        $asistencia = Asistencia::create([
-            'fecha' => $request->fecha,
-            'estado' => $request->estado,
-            'id_unidad_didactica' => $request->id_unidad_didactica,
-            'id_estudiante' => $request->id_estudiante,
-            'id_docente' => $request->id_docente,
-        ]);
-
-        if (!$asistencia) {
-            $data = [
-                'message' => 'Error al crear la asistencia',
-                'status' => 500
-            ];
-
-            return response()->json($data, 500);
-        }
-
-        $data = [
-            'asistencia' => $asistencia,
-            'status' => 201
-        ];
-
-        return response()->json($data, 201);
+        // Crear y guardar la asistencia
+        $asistencia = Asistencia::create($request->all());
+        return response()->json($asistencia, 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Asistencia $asistencia)
+    public function show($id)
     {
-        return response()->json($asistencia);
+        $asistencia = Asistencia::with(['unidadDidactica', 'estudiante', 'docente'])->find($id);
+        if (!$asistencia) {
+            return response()->json(['message' => 'Asistencia no encontrada'], 404);
+        }
+        return response()->json($asistencia, 200);
     }
 
     /**
@@ -81,7 +61,7 @@ class AsistenciaController extends Controller
      */
     public function update(Request $request, $id)
     {
-        // Validación de datos
+        // Validación de los datos
         $validator = Validator::make($request->all(), [
             'fecha' => 'required|date',
             'estado' => 'required|string|max:255',
@@ -91,47 +71,34 @@ class AsistenciaController extends Controller
         ]);
 
         if ($validator->fails()) {
-            $data = [
+            return response()->json([
                 'message' => 'Error en la validación de los datos',
                 'errors' => $validator->errors(),
                 'status' => 400
-            ];
-
-            return response()->json($data, 400);
+            ], 400);
         }
 
-        // Encontrar el registro existente
+        // Encontrar y actualizar la asistencia
         $asistencia = Asistencia::find($id);
-
         if (!$asistencia) {
-            $data = [
-                'message' => 'Asistencia no encontrada',
-                'status' => 404
-            ];
-
-            return response()->json($data, 404);
+            return response()->json(['message' => 'Asistencia no encontrada'], 404);
         }
 
-        $asistencia->fecha = $request->fecha;
-        $asistencia->estado = $request->estado;
-        $asistencia->id_unidad_didactica = $request->id_unidad_didactica;
-        $asistencia->id_estudiante = $request->id_estudiante;
-        $asistencia->id_docente = $request->id_docente;
-        $asistencia->save();
-
-        $data = [
-            'asistencia' => $asistencia,
-            'status' => 200
-        ];
-
-        return response()->json($data, 200);
+        $asistencia->update($request->all());
+        return response()->json($asistencia, 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Asistencia $asistencia)
+    public function destroy($id)
     {
-        //
+        $asistencia = Asistencia::find($id);
+        if (!$asistencia) {
+            return response()->json(['message' => 'Asistencia no encontrada'], 404);
+        }
+
+        $asistencia->delete();
+        return response()->json(['message' => 'Asistencia eliminada correctamente'], 200);
     }
 }

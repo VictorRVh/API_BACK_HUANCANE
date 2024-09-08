@@ -11,6 +11,8 @@ class NotaExperienciaFormativa extends Model
 
     protected $table = 'notas_experiencias_formativas';
 
+    protected $primaryKey = 'id_nota';
+
     protected $fillable = [
         'nota',
         'id_experiencia',

@@ -11,6 +11,8 @@ class Grupo extends Model
 
     protected $table = 'grupos';
 
+    protected $primaryKey = 'id_grupo';
+
     protected $fillable = [
         'nombre_grupo',
         'id_sede',

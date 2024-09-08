@@ -10,6 +10,7 @@ class NotaUnidadDidactica extends Model
     use HasFactory;
 
     protected $table = 'notas_unidades_didacticas';
+    protected $primaryKey = 'id_nota';
 
     protected $fillable = [
         'nota',

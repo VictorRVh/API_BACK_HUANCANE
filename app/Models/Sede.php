@@ -10,7 +10,12 @@ class Sede extends Model
 
     protected $primaryKey = 'id_sede';
     public $incrementing = true;
-    protected $keyType = 'bigInteger';
+    // protected $keyType = 'bigInteger';
 
     protected $fillable = ['nombre_sede', 'ubicacion'];
+
+    public function sede()
+    {
+        return $this->hasMany(Grupo::class, 'id_sede', 'id_sede');
+    }
 }

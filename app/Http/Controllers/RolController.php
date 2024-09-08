@@ -2,20 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Matricula;
+use App\Models\Rol;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class MatriculaController extends Controller
+class RolController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $matricula = Matricula::all();
-
-        return response()->json($matricula);
+        $rol = Rol::all();
+        return response()->json($rol);
     }
 
     /**
@@ -25,8 +24,7 @@ class MatriculaController extends Controller
     {
         // Validación de datos
         $validator = Validator::make($request->all(), [
-            'id_grupo' => 'required|exists:grupos,id_grupo',
-            'id_estudiante' => 'required|exists:usuarios,id_usuario',
+            'rol' => 'required|string|max:60',
         ]);
 
         if ($validator->fails()) {
@@ -39,15 +37,13 @@ class MatriculaController extends Controller
             return response()->json($data, 400);
         }
 
-        // Crear la nueva matrícula
-        $matricula = Matricula::create([
-            'id_grupo' => $request->id_grupo,
-            'id_estudiante' => $request->id_estudiante,
+        $rol = Rol::create([
+            'rol' => $request->rol,
         ]);
 
-        if (!$matricula) {
+        if (!$rol) {
             $data = [
-                'message' => 'Error al crear la matrícula',
+                'message' => 'Error al crear la especialidad',
                 'status' => 500
             ];
 
@@ -55,7 +51,7 @@ class MatriculaController extends Controller
         }
 
         $data = [
-            'matricula' => $matricula,
+            'rol' => $rol,
             'status' => 201
         ];
 
@@ -65,9 +61,21 @@ class MatriculaController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Matricula $matricula)
+    public function show($id)
     {
-        return response()->json($matricula);
+        $rol = Rol::find($id);
+
+        if (!$rol) {
+            return response()->json([
+                'message' => 'Rol no encontrado',
+                'status' => 404
+            ], 404);
+        }
+
+        return response()->json([
+            'rol' => $rol,
+            'status' => 200
+        ], 200);
     }
 
     /**
@@ -77,8 +85,7 @@ class MatriculaController extends Controller
     {
         // Validación de datos
         $validator = Validator::make($request->all(), [
-            'id_grupo' => 'required|exists:grupos,id_grupo',
-            'id_estudiante' => 'required|exists:usuarios,id_usuario',
+            'rol' => 'required|string|max:60',
         ]);
 
         if ($validator->fails()) {
@@ -91,44 +98,45 @@ class MatriculaController extends Controller
             return response()->json($data, 400);
         }
 
-        // Buscar la matrícula por ID
-        $matricula = Matricula::find($id);
+        // Encontrar el registro existente
+        $roles = Rol::find($id);
 
-        if (!$matricula) {
+        if (!$roles) {
             $data = [
-                'message' => 'Matrícula no encontrada',
+                'message' => 'Rol no encontrado',
                 'status' => 404
             ];
 
             return response()->json($data, 404);
         }
 
-        // Actualizar los datos de la matrícula
-        $matricula->id_grupo = $request->id_grupo;
-        $matricula->id_estudiante = $request->id_estudiante;
+        // Actualizar el registro
+        $roles->rol = $request->rol;
+        $roles->save();
 
-        if (!$matricula->save()) {
-            $data = [
-                'message' => 'Error al actualizar la matrícula',
-                'status' => 500
-            ];
-
-            return response()->json($data, 500);
-        }
-
-        $data = [
-            'matricula' => $matricula,
-            'status' => 200
-        ];
-
-        return response()->json($data, 200);
+        return response()->json(['message' => 'Rol actualizado', 'rol' => $roles], 200);
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Matricula $matricula)
+    public function destroy($id)
     {
-        //
+        $rol = Rol::find($id);
+
+        if (!$rol) {
+            return response()->json([
+                'message' => 'Rol no encontrado',
+                'status' => 404
+            ], 404);
+        }
+
+        $rol->delete();
+
+        return response()->json([
+            'message' => 'Rol eliminado exitosamente',
+            'status' => 200
+        ], 200);
     }
 }

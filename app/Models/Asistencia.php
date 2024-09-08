@@ -10,6 +10,7 @@ class Asistencia extends Model
     use HasFactory;
 
     protected $table = 'asistencias';
+    protected $primaryKey = 'id_asistencia';
 
     protected $fillable = [
         'fecha',
